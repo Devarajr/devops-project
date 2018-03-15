@@ -1,5 +1,5 @@
 aws_access_key:AKIAJQCM53CO2ML4CQBQ
-aws_secret_key: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
+aws_secret_key:
 key_name:ansible
 aws_region:us-east-1a
 vpc_id:vpc-93995af4
