@@ -1,0 +1,113 @@
+---
+# Basic provisioning example
+- name: Create AWS resources
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars:
+    aws_access_key: AKIAJQCM53CO2ML4CQBQ
+    aws_secret_key: REWAXNwe6qd0pf0/3CWyLYV8HFtYbGZQYDb8zNnU
+    key_name: ansible
+    aws_region: us-east-1
+    vpc_id: vpc-93995af4
+    ami_id: ami-66506c1c
+    instance_type: t2.micro
+    my_local_cidr_ip: 192.168.6.24/22
+
+  tasks:
+  - name: Create a security group
+    ec2_group:
+      name: ansible
+      description: "Ansible Security Group"
+      region: "{{aws_region}}"
+      vpc_id: "{{vpc_id}}"
+      aws_access_key: AKIAJQCM53CO2ML4CQBQ
+      #aws_access_key: "{{aws_access_key}}"
+      aws_secret_key: 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
+      #aws_secret_key: "{{aws_secret_key}}"
+      rules:
+        - proto: all
+          cidr_ip: "{{my_local_cidr_ip}}"
+        - proto: all
+          group_name: ansible
+      rules_egress:
+        - proto: all
+          cidr_ip: 0.0.0.0/0
+    register: firewall
+  - name: Create an EC2 instance
+    ec2:
+      aws_access_key: "{{aws_access_key}}"
+      aws_secret_key: "{{aws_secret_key}}"
+      key_name: "{{key_name}}"
+      region: "{{aws_region}}"
+      group_id: "{{firewall.group_id}}"
+      instance_type: "{{instance_type}}"
+      image: "{{ami_id}}"
+      wait: yes
+      volumes:
+        - device_name: /dev/sda1
+          volume_type: gp2
+          volume_size: 10
+          delete_on_termination: true
+      exact_count: 1
+      count_tag:
+         Name: aws-demo
+      instance_tags:
+         Name: aws-demo
+    register: ec2
+
+- name: install apache
+  hosts: mywebservers
+  user: ubuntu
+  gather_facts: False
+  #become: yes
+  #become_user: root
+  #become_method: sudo
+  become: True
+  become_method: sudo
+  become_user: root
+  #become_ask_pass: False
+
+  vars:
+   #playbook_dir: /root/Development/ansible-aws
+   ansible_user: ubuntu 
+   ansible_ssh_private_key_file: /home/drajago/Downloads/ansible.pem
+  tasks:
+  - name: install python 2
+    raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+    tags:
+     - installPython
+
+  - name: Install Apache
+    apt: update_cache=yes cache_valid_time=3600 pkg={{ item }} state=present # won't update if done under an hour ago
+    with_items:
+     - apache2
+    tags:
+     - installApache
+
+  - name: StaticPage
+    template: 
+     src: index.html 
+     dest: /var/www/html/index.html
+     owner: ubuntu
+     group: ubuntu
+     mode: 0644
+    tags:
+     - copyStaticPage
+
+  - name: pipInstallation
+     get_url: url=https://bootstrap.pypa.io/get-pip.py  dest=/tmp
+     command: "python /tmp/get-pip.py"
+     tags: 
+      - installPip
+
+
+  - name: Generate a Self Signed OpenSSL certificate
+     pip: name=pyOpenSSL state=present
+     openssl_certificate:
+      path: /etc/ssl/crt/ansible.com.crt
+      privatekey_path: /etc/ssl/private/ansible.com.pem
+      csr_path: /etc/ssl/csr/ansible.com.csr
+      provider: selfsigned 
+     tags:
+      - selfSignedCert

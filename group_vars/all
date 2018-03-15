@@ -1,0 +1,8 @@
+aws_access_key: AKIAJQCM53CO2ML4CQBQ
+aws_secret_key: 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
+key_name: ansible
+aws_region: us-east-1
+vpc_id: vpc-93995af4
+ami_id: ami-66506c1c
+instance_type: t2.micro
+my_local_cidr_ip: 192.168.6.24/22

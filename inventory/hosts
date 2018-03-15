@@ -1,0 +1,13 @@
+[local]
+#localhost ansible_python_interpreter=/bin/python
+localhost
+
+[mywebservers]
+54.208.220.115 ansible_python_interpreter=/usr/bin/python
+
+[mywebservers:vars]
+ansible_connection=ssh
+ansible_port=22
+ansible_user=ubuntu
+ansible_ssh_private_key_file=/home/drajago/Downloads/ansible.pem
+#ansible_ssh_private_key_file={{playbook_dir}}/environments/{{env}}/ci-cd.pem
