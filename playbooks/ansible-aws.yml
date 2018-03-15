@@ -97,10 +97,10 @@
 
   - name: pipInstallation
      get_url: url=https://bootstrap.pypa.io/get-pip.py  dest=/tmp
+  - name: installPip
      command: "python /tmp/get-pip.py"
      tags: 
       - installPip
-
 
   - name: Generate a Self Signed OpenSSL certificate
      pip: name=pyOpenSSL state=present

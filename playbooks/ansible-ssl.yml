@@ -1,0 +1,22 @@
+---
+- name: install ssl certs
+  #hosts: local
+  hosts: mywebservers
+  user: ubuntu
+  gather_facts: False
+  become: True
+  become_method: sudo
+  become_user: root
+
+  vars:
+   ansible_user: ubuntu
+   ansible_ssh_private_key_file: /home/drajago/Downloads/ansible.pem
+  tasks:
+   - name: pipInstallation
+     get_url: url=https://bootstrap.pypa.io/get-pip.py  dest=/tmp
+   - name: runPip
+     command: "python /tmp/get-pip.py"
+
+
+     tags:
+      - installPip
